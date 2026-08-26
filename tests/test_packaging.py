@@ -12,9 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 class PackagingTests(unittest.TestCase):
     def test_version_file(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(version, "0.1.0")
+        self.assertEqual(version, "0.2.0")
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn('version: "0.1.0"', skill)
+        self.assertIn('version: "0.2.0"', skill)
 
     def test_skill_scanner_path_is_portable(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

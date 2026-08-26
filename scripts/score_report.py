@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Recompute overall and rank from 15 business-analysis principle integers.
+"""Validate Decision Readiness, overall, and rank in BA audit reports.
 
 Stdlib only. The agent classifies evidence and assigns 0–10 per principle.
 This script does not invent principle scores. Formula and rank bands live in
 ``references/scoring.md``.
 
-Exit 0 if arithmetic + rank match; exit 1 on mismatch; exit 2 on usage.
+Exit 0 if readiness, arithmetic, and rank are valid; exit 1 otherwise; exit 2 on usage.
 """
 
 from __future__ import annotations
@@ -97,6 +97,24 @@ ALIASES = {
 
 RANKS = ("Excellent", "Good", "Fair", "Poor")
 
+READINESS_ROWS = {
+    "right problem": "Right problem",
+    "best available option": "Best available option",
+    "measurable value": "Measurable value",
+}
+RIGHT_PROBLEM_CONCLUSIONS = ("Validated", "Provisional", "Unknown")
+MEASURABLE_VALUE_CONCLUSIONS = (
+    "Realized",
+    "Measurement-ready",
+    "Measurable with gaps",
+    "Not measurable",
+    "Unknown",
+)
+DECISION_READINESS_HEADING_RE = re.compile(
+    r"^#{2,6}\s+(?:\d+\.\s+)?Decision Readiness(?:\s+\(.*\))?\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
 USAGE = "usage: score_report.py INPUT.md|INPUT.json [--json OUT.json]"
 SCORE_INT_RE = re.compile(r"0*(?:10|[0-9])$")
 
@@ -104,9 +122,9 @@ SCORE_INT_RE = re.compile(r"0*(?:10|[0-9])$")
 def package_version() -> str:
     path = ROOT / "VERSION"
     try:
-        return path.read_text(encoding="utf-8").strip() or "0.1.0"
+        return path.read_text(encoding="utf-8").strip() or "0.2.0"
     except OSError:
-        return "0.1.0"
+        return "0.2.0"
 
 
 VERSION = package_version()
@@ -200,6 +218,68 @@ def scorecard_table(tables: dict[str, list[list[str]]]) -> list[list[str]] | Non
         if rows and header_index(rows[0], "principle") is not None:
             return rows
     return None
+
+
+def validate_decision_readiness(md: str, tables: dict[str, list[list[str]]]) -> list[str]:
+    if not DECISION_READINESS_HEADING_RE.search(md):
+        return ["Decision Readiness section missing"]
+
+    table = tables.get("decision readiness")
+    if table is None:
+        return ["Decision Readiness table missing"]
+
+    header = table[0]
+    i_outcome = header_index(header, "outcome")
+    i_conclusion = header_index(header, "conclusion")
+    if i_outcome is None or i_conclusion is None:
+        return ["Decision Readiness table needs Outcome and Conclusion columns"]
+
+    conclusions: dict[str, str] = {}
+    for row in table[1:]:
+        if i_outcome >= len(row):
+            continue
+        outcome = fold(row[i_outcome])
+        if outcome not in READINESS_ROWS:
+            continue
+        conclusions[outcome] = row[i_conclusion].strip() if i_conclusion < len(row) else ""
+
+    errors: list[str] = []
+    for outcome, label in READINESS_ROWS.items():
+        if outcome not in conclusions:
+            errors.append(f"Decision Readiness row missing: {label}")
+
+    right_problem = conclusions.get("right problem")
+    if right_problem is not None and right_problem not in RIGHT_PROBLEM_CONCLUSIONS:
+        allowed = ", ".join(RIGHT_PROBLEM_CONCLUSIONS)
+        errors.append(
+            f"Decision Readiness conclusion for Right problem must be one of: {allowed} "
+            f"(got {right_problem!r})"
+        )
+
+    best_option = conclusions.get("best available option")
+    if best_option is not None:
+        recommendation = best_option.removeprefix("Recommended:").strip()
+        template_placeholder = recommendation in {"…", "...", "… / Not decision-ready"}
+        if best_option != "Not decision-ready" and (
+            not best_option.startswith("Recommended:")
+            or not recommendation
+            or template_placeholder
+        ):
+            errors.append(
+                "Decision Readiness conclusion for Best available option must be "
+                "'Not decision-ready' or 'Recommended: <option>' "
+                f"(got {best_option!r})"
+            )
+
+    measurable_value = conclusions.get("measurable value")
+    if measurable_value is not None and measurable_value not in MEASURABLE_VALUE_CONCLUSIONS:
+        allowed = ", ".join(MEASURABLE_VALUE_CONCLUSIONS)
+        errors.append(
+            f"Decision Readiness conclusion for Measurable value must be one of: {allowed} "
+            f"(got {measurable_value!r})"
+        )
+
+    return errors
 
 
 def scores_from_table(table: list[list[str]] | None) -> tuple[dict[str, int], dict[str, str], list[str]]:
@@ -319,6 +399,7 @@ def validate_scores(
 def validate_markdown(md: str) -> tuple[list[str], dict]:
     meta = parse_meta(md)
     tables = parse_tables(md)
+    readiness_errors = validate_decision_readiness(md, tables)
     table = scorecard_table(tables)
     scores, evidence, parse_errors = scores_from_table(table)
     if table is None:
@@ -335,7 +416,7 @@ def validate_markdown(md: str) -> tuple[list[str], dict]:
     payload["audit_mode"] = meta.get("Audit mode", "")
     payload["subject_type"] = meta.get("Subject type", "")
     payload["cadence"] = meta.get("Cadence", "")
-    payload["errors"] = parse_errors + errors
+    payload["errors"] = readiness_errors + parse_errors + errors
     return payload["errors"], payload
 
 

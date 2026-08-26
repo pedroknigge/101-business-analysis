@@ -1,6 +1,16 @@
 # Changelog
 
-Public numbering is **0.1.0**. First productized release of the Agent Skill.
+Public numbering is **0.2.0**.
+
+## 0.2.0 - 2026-08-25
+
+### Changed
+
+- Business Analysis now defaults to active decision support: frame the real problem, compare credible options, and plan measurable value without forcing a score or report files.
+- Deterministic scoring is an explicit audit mode. The scorer validates the non-numeric Decision Readiness gate, the HTML leads with it, and Overall and Rank remain diagnostic.
+- Decision-critical unknowns now block recommendations and implementation backlogs. The skill asks focused questions or recommends the smallest discovery action instead.
+- Audit artifacts now trace requirements to outcomes, expose option evidence and uncertainty, and include a value-realization plan with ownership and a review response.
+- Audit inputs are treated as evidence rather than instructions, and project report files are created only when explicitly requested.
 
 ## 0.1.0
 

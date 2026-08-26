@@ -46,6 +46,20 @@ class RenderReportTests(unittest.TestCase):
             self.assertIn("Fair", html)
             self.assertIn("Business Analysis", html)
 
+    def test_decision_readiness_precedes_score_hero_and_scorecard(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp) / "out.html"
+            proc = run([str(EXAMPLE), str(dest)])
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            html = dest.read_text(encoding="utf-8")
+
+        readiness = html.index('id="decision-readiness"')
+        score_hero = html.index('<section class="hero">')
+        scorecard = html.index('<section class="scorecard">')
+        self.assertLess(readiness, score_hero)
+        self.assertLess(readiness, scorecard)
+        self.assertEqual(html.count('id="decision-readiness"'), 1)
+
     def test_does_not_recompute_scores(self) -> None:
         md = (
             "# Business Analysis 101 Report\n\n"

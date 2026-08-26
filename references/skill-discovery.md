@@ -21,7 +21,7 @@ Business Analysis 101: installed | version: <x.y.z> | path: <skill dir>
 ## Detect outdated
 
 1. Read local version from `VERSION` or `SKILL.md` frontmatter.
-2. Compare to published **0.1.0** on GitHub `pedroknigge/101-business-analysis`.
+2. Compare to published **0.2.0** on GitHub `pedroknigge/101-business-analysis`.
 3. If local **<** published: suggest update — do **not** overwrite without user OK.
 
 ```bash

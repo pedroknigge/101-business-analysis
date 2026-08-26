@@ -137,6 +137,35 @@ def render_scorecard(table: list[list[str]] | None) -> str:
     )
 
 
+def extract_section(md: str, title: str) -> tuple[str, str]:
+    """Return one markdown section and the document without that section."""
+    lines = md.splitlines(keepends=True)
+    start: int | None = None
+    end = len(lines)
+    level = 0
+    target = title.strip().lower()
+
+    for i, line in enumerate(lines):
+        heading = re.match(r"^(#{2,6})\s+(.+?)\s*$", line)
+        if not heading:
+            continue
+        heading_level = len(heading.group(1))
+        heading_title = re.sub(r"\s+", " ", heading.group(2)).strip().lower()
+        if start is None:
+            if heading_title == target:
+                start = i
+                level = heading_level
+        elif heading_level <= level:
+            end = i
+            break
+
+    if start is None:
+        return "", md
+    section = "".join(lines[start:end]).strip()
+    remainder = "".join(lines[:start] + lines[end:])
+    return section, remainder
+
+
 def md_body_html(md: str) -> str:
     """Convert report markdown to HTML, skipping dashboard-duplicated sections."""
     lines = md.splitlines()
@@ -255,6 +284,14 @@ def md_body_html(md: str) -> str:
 def render_html(md: str) -> str:
     meta = parse_meta(md)
     tables = parse_tables(md)
+    readiness_md, article_md = extract_section(md, "Decision Readiness")
+    readiness_html = ""
+    if readiness_md:
+        readiness_html = (
+            '<section class="article decision-readiness">'
+            + md_body_html(readiness_md)
+            + "</section>"
+        )
     rank = meta.get("Rank", "")
     rclass = rank_class(rank)
     score = extract_score(meta.get("Overall Score", ""))
@@ -294,6 +331,7 @@ def render_html(md: str) -> str:
       <div class="wordmark"><b>Business Analysis</b><span>101 analyzer</span></div>
       <div class="mast-meta">{esc(path)}<br>{esc(meta.get("Date", ""))}</div>
     </header>
+    {readiness_html}
     <section class="hero">
       <div class="score-block">
         <div class="label">Overall score</div>
@@ -308,7 +346,7 @@ def render_html(md: str) -> str:
     </section>
     {render_scorecard(scorecard)}
     <div class="article">
-      {md_body_html(md)}
+      {md_body_html(article_md)}
     </div>
     <footer class="foot">
       <span>101-business-analysis</span>

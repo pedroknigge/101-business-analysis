@@ -28,6 +28,21 @@ def run(args: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
+def make_readiness(
+    right_problem: str = "Validated",
+    best_option: str = "Not decision-ready",
+    measurable_value: str = "Measurable with gaps",
+) -> str:
+    return (
+        "## Decision Readiness\n\n"
+        "| Outcome | Conclusion | Evidence | Critical unknown / next evidence |\n"
+        "|---------|------------|----------|----------------------------------|\n"
+        f"| Right problem | {right_problem} | evidence | next evidence |\n"
+        f"| Best available option | {best_option} | evidence | next evidence |\n"
+        f"| Measurable value | {measurable_value} | evidence | next evidence |\n"
+    )
+
+
 def make_report(
     scores: list[int],
     overall: str,
@@ -35,6 +50,7 @@ def make_report(
     *,
     skip: int | None = None,
     evidence: bool = True,
+    readiness: str | None = None,
 ) -> str:
     rows = []
     for i, (name, score) in enumerate(zip(PRINCIPLES, scores), 1):
@@ -44,6 +60,7 @@ def make_report(
         rows.append(f"| {i} | {name} | {score} | {ev} | fix {i} |")
     table = "\n".join(rows)
     coverage = "**Evidence coverage:** 100%\n" if evidence and skip is None else ""
+    readiness = make_readiness() if readiness is None else readiness
     return (
         "# Business Analysis 101 Report\n\n"
         "**Project:** /tmp/demo\n"
@@ -54,6 +71,7 @@ def make_report(
         f"**Overall Score:** {overall} / 10\n"
         f"**Rank:** {rank}\n"
         f"{coverage}\n"
+        f"{readiness}\n"
         "## Scorecard\n\n"
         "| # | Principle | Score (0-10) | Key Evidence | Recommendation |\n"
         "|---|-----------|--------------|--------------|----------------|\n"
@@ -94,6 +112,72 @@ class ScoreReportTests(unittest.TestCase):
     def test_known_fifteen_scores(self) -> None:
         scores = [8, 7, 5, 6, 6, 8, 7, 4, 5, 8, 6, 5, 8, 5, 8]
         md = make_report(scores, "6.4", "Fair")
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+
+    def test_missing_decision_readiness_section_fails(self) -> None:
+        md = make_report([7] * 15, "7.0", "Good", readiness="")
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Decision Readiness section missing", proc.stderr)
+
+    def test_missing_decision_readiness_table_fails(self) -> None:
+        md = make_report(
+            [7] * 15,
+            "7.0",
+            "Good",
+            readiness="## Decision Readiness\n\nNo readiness table.\n",
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Decision Readiness table missing", proc.stderr)
+
+    def test_missing_decision_readiness_row_fails(self) -> None:
+        readiness = make_readiness().replace(
+            "| Best available option | Not decision-ready | evidence | next evidence |\n",
+            "",
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Decision Readiness row missing: Best available option", proc.stderr)
+
+    def test_invalid_decision_readiness_conclusions_fail_clearly(self) -> None:
+        cases = (
+            (make_readiness(right_problem="Confirmed"), "Right problem"),
+            (make_readiness(best_option="Recommended:"), "Best available option"),
+            (make_readiness(best_option="Recommended: …"), "Best available option"),
+            (make_readiness(measurable_value="Trackable"), "Measurable value"),
+        )
+        for readiness, outcome in cases:
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory() as tmp:
+                src = Path(tmp) / "in.md"
+                src.write_text(
+                    make_report([7] * 15, "7.0", "Good", readiness=readiness),
+                    encoding="utf-8",
+                )
+                proc = run([str(src)])
+            self.assertEqual(proc.returncode, 1)
+            self.assertIn(f"Decision Readiness conclusion for {outcome}", proc.stderr)
+
+    def test_recommended_option_and_measurable_with_gaps_pass(self) -> None:
+        readiness = make_readiness(
+            best_option="Recommended: Configure the existing platform",
+            measurable_value="Measurable with gaps",
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
         with tempfile.TemporaryDirectory() as tmp:
             src = Path(tmp) / "in.md"
             src.write_text(md, encoding="utf-8")

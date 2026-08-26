@@ -42,6 +42,12 @@ BABOK knowledge areas are covered by these principles (not scored as a second ca
 
 Per-principle “what 9 vs 2 looks like” stays in `references/principles.md`. This table is the shared language for the integer.
 
+## Interpretation: diagnostic, not a decision gate
+
+Overall and Rank summarize the maturity and available evidence across the 15 principles. They do **not** prove that the underlying problem is validated, that the proposed solution is the best available option, or that value is measurable or realized. A strong average can coexist with a decision-critical gap.
+
+Report the separate non-numeric `Decision Readiness` gate from `SKILL.md` / `references/report_template.md`. Never infer or override readiness from Overall or Rank.
+
 ## Overall (simple average — the contract)
 
 `overall = (sum of the 15 integer scores) / 15` to **one decimal**, **half up**.

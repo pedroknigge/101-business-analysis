@@ -1,6 +1,6 @@
 # Techniques
 
-Catalog of techniques the agent may **recommend** in the report. Definitions and scores live in `references/principles.md` / `references/scoring.md`. Do not score techniques. Pick the smallest set that closes the gap.
+Catalog of techniques the agent may **apply or recommend** when they advance the current decision. Definitions and audit scores live in `references/principles.md` / `references/scoring.md`. Do not score techniques. Pick the smallest set that closes the gap.
 
 ## Elicitation & collaboration
 

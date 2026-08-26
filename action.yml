@@ -1,5 +1,5 @@
 name: ba-score
-description: Recompute business-analysis report overall and rank from the 15 principle scores
+description: Validate Decision Readiness and recompute overall and rank from the 15 principle scores
 inputs:
   report:
     description: Path to ba-audit-report.md

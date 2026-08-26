@@ -17,10 +17,18 @@ Worked example for the formula in `references/scoring.md` (ShiftSwap, fictional 
 - Weaknesses: success is “app launched”; options paper is missing (process/policy never scored); no out-of-scope list; no plan to measure overtime after release.
 - Verdict: competent Agile backlog on a real process, still anchored to a predetermined mobile app. Problem and process are ahead of value and options.
 
+## Decision Readiness
+
+| Outcome | Conclusion | Evidence | Critical unknown / next evidence |
+|---------|------------|----------|----------------------------------|
+| Right problem | Provisional | As-is flow and finance note connect late swaps with coverage and overtime | Observe one weekend swap and quantify the current failure |
+| Best available option | Not decision-ready | The app was selected before policy, form, and do-nothing were compared | Agree decision criteria and compare the credible options |
+| Measurable value | Measurable with gaps | Overtime and payroll corrections are observable but have no baseline, target, owner, or review point | Pull a baseline and agree owner, target, and review point |
+
 ## Starting Questions
 
 1. Real problem/opportunity: Overtime cost and coverage gaps when swaps are arranged on WhatsApp and payroll is told after the fact (`docs/process-as-is.md`, finance note in `docs/stakeholders.md`).
-2. Who cares and why: Shift leads (coverage), employees (fairness), payroll (correct hours), union steward (policy), finance (overtime). IT is a delivery party, not the owner.
+2. Who cares and why; decision owner: Shift leads (coverage), employees (fairness), payroll (correct hours), union steward (policy), finance (overtime). Decision owner is Unknown; Operations leadership and Finance sponsorship are candidates to confirm. IT is a delivery party, not the owner.
 3. Success (measurable): Stated as “launch the app in Q3”. Overtime $ and late payroll corrections are mentioned, not baselined.
 4. Constraints: Union swap rules; payroll cutoff T+1; no budget for a vendor this year (`docs/stakeholders.md`). “Must be mobile” is a preference treated as a constraint.
 5. Possible ways: Mobile app (chosen); improve WhatsApp template + payroll form; policy that swaps need lead approval by T-12h; do nothing.
@@ -53,7 +61,7 @@ Worked example for the formula in `references/scoring.md` (ShiftSwap, fictional 
 | 3 | Value & Success Criteria | 5 | README success = “app in Q3”; overtime mentioned, no baseline | Pull last quarter overtime $ and late-correction count |
 | 4 | Constraints & Assumptions | 6 | Union rules and payroll cutoff are real; “must be mobile” is not | Split hard vs preference; log the mobile assumption |
 | 5 | Elicitation Completeness | 6 | Process doc + stories; no observation of a live swap | Shadow one weekend swap; capture exceptions |
-| 6 | Requirements Quality | 8 | `docs/stories.md` Given/When/Then for request/approve/notify | Add rules for denied swaps and cutoff misses |
+| 6 | Requirements Quality | 8 | `docs/stories.md` Given/When/Then for request/approve/notify | Elicit denied-swap and cutoff exceptions; specify them only if software is selected |
 | 7 | Classification & Prioritization | 7 | MoSCoW on stories; Must still includes push notifications | Cut notify-all from Must; keep approve-by-cutoff |
 | 8 | Solution Options Evaluation | 4 | Only the app is in `README.md`; policy/form not scored | One-page options: app vs form vs policy vs do-nothing |
 | 9 | Traceability | 5 | Stories map to AC; no link to an objective id | OBJ-overtime → REQ-approve-cutoff → story → UAT |
@@ -81,21 +89,38 @@ Weekend coverage is arranged in WhatsApp. Approved swaps reach payroll late or n
 | Finance | Overtime $ | Medium | Informed |
 | IT | Delivery | Medium | Responsible (build, if built) |
 
-### Requirements inventory (gaps)
+Decision owner: Unknown. Confirm whether Operations leadership owns the change with Finance as sponsor.
 
-- Must: request, lead approve/deny before cutoff, payroll-ready record — present.
-- Should: notify both parties — present, possibly over-scoped.
-- Missing: denied-swap path, post-cutoff exception, eligibility rules as a table.
-- Creep: in-app chat, calendar sync.
+### Requirements inventory (gaps and outcome trace)
+
+| Requirement / gap | Stakeholder need | Measurable outcome / ID | Acceptance evidence | Priority / status |
+|-------------------|------------------|-------------------------|---------------------|-------------------|
+| Existing: request and approve/deny before cutoff | Employees need fair swaps; leads need reliable coverage | OUT-1: avoidable overtime; target unknown | Given/When/Then in `docs/stories.md` | Must / present in proposed app |
+| Existing: payroll-ready swap record | Payroll needs correct hours without late correction | OUT-2: late payroll corrections; target unknown | Record import is named; payroll acceptance evidence is missing | Must / partial in proposed app |
+| Evidence gap: denied, ineligible, and post-cutoff business rules | Union compliance and correct exception handling | OUT-1 and OUT-2 | Decision table and exception evidence are missing | Discovery gap / unresolved |
+| Existing: in-app chat and calendar sync | No evidenced stakeholder need | No demonstrated outcome link | None | Could / orphan scope |
 
 ### Options compared
 
-| Option | Value to problem | Cost / risk / time | Fit |
-|--------|------------------|--------------------|-----|
-| Do nothing | None | Overtime continues | Reject |
-| Policy + paper/form | High if leads actually approve | Low cost, culture risk | Not scored by the team |
-| WhatsApp template + payroll sheet | Medium | Tiny | Not scored |
-| Custom mobile app | Unproven | High | Chosen without comparison |
+Decision criteria: reduce avoidable overtime and late payroll corrections; comply with union rules and payroll cutoff; remain feasible without vendor budget; minimize adoption and delivery risk.
+
+| Option | Expected value | Constraints / feasibility | Cost / time / risk | Evidence & uncertainty | Decision rationale |
+|--------|----------------|---------------------------|--------------------|------------------------|--------------------|
+| Do nothing | None expected | Feasible but preserves current process | Low change cost; overtime continues | Current failure is documented; magnitude is not baselined | Reject if the problem magnitude is confirmed |
+| Policy + paper/form | Potentially high if approval reaches payroll on time | Must fit union rules and lead behavior | Low delivery cost; adoption risk | Untested hypothesis | Candidate for comparison or a small process test |
+| WhatsApp template + payroll sheet | Potentially medium | Uses current tools; still depends on manual handoff | Very low cost; control and error risk | Untested hypothesis | Candidate if it meets auditability and cutoff needs |
+| Custom mobile app | Unproven | Feasible in-house; mobile is a preference, not a hard constraint | Highest cost and time; adoption risk | Chosen without comparative evidence | Do not recommend yet |
+
+### Recommendation and rationale
+
+`Not decision-ready`. Establish the baseline and compare the three change options against the stated criteria before funding the app. The decision could change if the low-cost options cannot satisfy union auditability or payroll cutoff requirements.
+
+### Value realization plan
+
+| Outcome | Baseline / baseline plan | Target | Owner | Data source | Review point | Action if missed |
+|---------|--------------------------|--------|-------|-------------|--------------|------------------|
+| Avoidable overtime from late or failed swaps | Finance extracts the previous 12 weeks | Unknown — requires agreement | Unknown — Finance/Operations candidate | Overtime ledger + swap records | Proposed: 30 days after the test | Inspect adoption and exception paths; adapt or stop |
+| Late payroll corrections | Payroll counts the previous 12 weeks | Unknown — requires agreement | Unknown — Payroll candidate | Payroll correction log | Proposed: 30 days after the test | Compare failure reasons and revise the process or option |
 
 ### Assumptions & decisions
 
@@ -129,8 +154,8 @@ Weekend coverage is arranged in WhatsApp. Approved swaps reach payroll late or n
 
 ### P2 – Strategic
 
-- 30-day outcome review against overtime (M). Why: solution evaluation.
-- Only if options still pick software: first slice = approve-by-cutoff record payroll can import (M). Why: scope discipline.
+- Define the continue / adapt / stop rule for any future intervention (S). Why: solution evaluation.
+- Defer solution slicing until the option decision is ready. Why: scope discipline.
 
 ## Cadence Notes
 
@@ -140,4 +165,4 @@ Agile refinement is already happening. That does not replace an options paper. K
 
 - Stakeholder workshop (60 min): score four options.
 - Observation: one weekend swap.
-- Traceability stub: OBJ-overtime → Must stories.
+- Traceability stub: problem → OUT-1 / OUT-2 → option criteria.

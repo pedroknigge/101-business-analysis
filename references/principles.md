@@ -340,7 +340,8 @@ Aligned with BABOK knowledge areas without scoring them as a second card. Contex
 **Why it matters**: Requirements that are never validated against outcomes are a one-time document exercise. BABOK Solution Evaluation lives here.
 
 **Good indicators**:
-- Plan to measure the success criteria after release (who, when, data source).
+- Pre-delivery plan with baseline or baseline plan, target, owner, data source, review point, and action if the target misses.
+- Post-delivery observed outcome delta and an explicit continue / adapt / stop decision.
 - UAT against acceptance criteria that map to the problem.
 - Rollback / learn path if the outcome misses.
 
@@ -352,7 +353,7 @@ Aligned with BABOK knowledge areas without scoring them as a second card. Contex
 **Detection**: Scanner `validation` / UAT / outcome. Pre-delivery subjects score on the *plan*, not on retrofitted metrics.
 
 **Scoring**:
-- 9–10: Measurement plan tied to the original value; owner and date.
+- 9–10: Measurement plan tied to the original value with baseline or baseline plan, target, owner, data source, review point, and action if the target misses; post-delivery subjects also show the observed delta and continue / adapt / stop decision.
 - 5–6: UAT or “we’ll look at usage” without a baseline.
 - 0–2: No idea how to know it worked.
 
@@ -383,10 +384,11 @@ Aligned with BABOK knowledge areas without scoring them as a second card. Contex
 
 ---
 
-## How to use this reference
+## How to use this reference in audit mode
 
 1. Answer the seven starting questions from `SKILL.md` first.
-2. For each principle, gather evidence (scanner JSON, files, quoted brief).
-3. Score an **integer 0–10** from the anchors here. Overall and rank come from `references/scoring.md` via `scripts/score_report.py`.
-4. Cite real paths or quotes. Do not invent stakeholders or KPIs.
-5. When principles conflict (speed vs elicitation completeness), name the trade-off in prose. Do not reweight.
+2. State the non-numeric Decision Readiness conclusions; do not derive them from scores.
+3. For each principle, gather evidence (scanner JSON, files, quoted brief).
+4. Score an **integer 0–10** from the anchors here. Overall and rank come from `references/scoring.md` via `scripts/score_report.py`.
+5. Cite real paths or quotes. Do not invent stakeholders or KPIs.
+6. When principles conflict (speed vs elicitation completeness), name the trade-off in prose. Do not reweight.

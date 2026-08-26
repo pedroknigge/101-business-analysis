@@ -1,6 +1,6 @@
 # Report Template for Business Analysis 101
 
-Use this exact structure. Section titles, header keys, principle names, and rank tokens stay **English** (the scorer parses them). Write the narrative (verdict, evidence, recommendations, roadmap) in the language of the request. Rank tokens: `Excellent` / `Good` / `Fair` / `Poor` — `references/scoring.md`. Numbers live only in `references/` — never invent them.
+Use this exact structure in explicit audit mode. Section titles, header keys, principle names, and rank tokens stay **English** (the scorer parses them). Write the narrative (readiness, verdict, evidence, recommendations, roadmap) in the language of the request. Rank tokens: `Excellent` / `Good` / `Fair` / `Poor` — `references/scoring.md`. Audit constants live only in `references/`; business baselines and targets must come from evidence or be labeled proposed.
 
 ```markdown
 # Business Analysis 101 Report
@@ -17,11 +17,21 @@ Use this exact structure. Section titles, header keys, principle names, and rank
 ## Executive Summary
 - 3 strengths
 - 3 critical weaknesses
-- 1–2 sentence verdict (copy the Rank header computed by `score_report.py`; do not invent a second rank)
+- 1–2 sentence diagnostic verdict (copy the Rank header computed by `score_report.py`; do not invent a second rank or infer decision readiness from it)
+
+## Decision Readiness
+
+| Outcome | Conclusion | Evidence | Critical unknown / next evidence |
+|---------|------------|----------|----------------------------------|
+| Right problem | Validated / Provisional / Unknown | | |
+| Best available option | Recommended: … / Not decision-ready | | |
+| Measurable value | Realized / Measurement-ready / Measurable with gaps / Not measurable / Unknown | | |
+
+This gate is non-numeric. A high Rank cannot override an unresolved row. `Realized` requires post-delivery outcome evidence; `Measurement-ready` requires a baseline or baseline plan, target, owner, data source, review point, and action if the target misses. Use `Measurable with gaps` when the outcome is plausible but one or more of those elements is unresolved; reserve `Not measurable` for cases with no observable outcome.
 
 ## Starting Questions
 1. Real problem/opportunity:
-2. Who cares and why:
+2. Who cares and why; decision owner:
 3. Success (measurable):
 4. Constraints:
 5. Possible ways:
@@ -68,22 +78,35 @@ Counts must sum to 15.
 | 14 | Solution Evaluation | | | |
 | 15 | Requirements Life Cycle | | | |
 
-Scores are integers 0–10. Empty evidence → score conservatively; do not invent files. `scripts/score_report.py` recomputes overall and rank from this table.
+Scores are integers 0–10. Empty evidence → score conservatively; do not invent files. `scripts/score_report.py` validates Decision Readiness and recomputes overall and rank from this table.
 
 ## BA Artifacts
 ### Problem statement
 ### Stakeholder map
 | Stakeholder | Interest | Influence | RACI |
 |-------------|----------|-----------|------|
-### Requirements inventory (gaps)
+Decision owner: [role / Unknown]
+### Requirements inventory (gaps and outcome trace)
+If `Not decision-ready`, inventory existing requirements and evidence gaps only. Do not create implementation requirements or a solution backlog.
+
+| Requirement / gap | Stakeholder need | Measurable outcome / ID | Acceptance evidence | Priority / status |
+|-------------------|------------------|-------------------------|---------------------|-------------------|
 ### Options compared
-| Option | Value to problem | Cost / risk / time | Fit |
-|--------|------------------|--------------------|-----|
+Decision criteria: [derived from desired value, hard constraints, feasibility, and risk]
+
+| Option | Expected value | Constraints / feasibility | Cost / time / risk | Evidence & uncertainty | Decision rationale |
+|--------|----------------|---------------------------|--------------------|------------------------|--------------------|
+### Recommendation and rationale
+Recommended option or `Not decision-ready`; material trade-offs; rejected alternatives; confidence; what could reverse the decision.
+### Value realization plan
+| Outcome | Baseline / baseline plan | Target | Owner | Data source | Review point | Action if missed |
+|---------|--------------------------|--------|-------|-------------|--------------|------------------|
 ### Assumptions & decisions
 
 ## Strengths
 ## Weaknesses & Risks
 ## Prioritized Roadmap
+If `Not decision-ready`, include only discovery, evidence, option-comparison, and measurement actions. Do not include implementation slices.
 ### P0 – Quick Wins (high leverage, low effort)
 ### P1
 ### P2 – Strategic

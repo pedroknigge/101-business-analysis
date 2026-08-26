@@ -1,6 +1,6 @@
 # 101-business-analysis
 
-**Score anything 0–10 from a Business Analysis perspective** — a repo, a PRD, a feature request, an idea, a process, or a predetermined “we need an app”.
+**Solve the right problem, choose the best-supported option, and verify measurable value** — for a repo, PRD, feature request, idea, process, or predetermined “we need an app”.
 
 ```bash
 npx skills add pedroknigge/101-business-analysis -g -y
@@ -18,9 +18,11 @@ npx skills add pedroknigge/101-business-analysis -g -y
          question the problem, not the epic
 ```
 
-Pre-1.0 (`0.1.0`). An Agent Skill with a deterministic scorer. Not a BABOK certification and not a project-manager replacement.
+Pre-1.0 (`0.2.0`). An outcome-first Business Analysis skill with an optional deterministic audit scorer. Not a BABOK certification and not a project-manager replacement.
 
-The agent inspects a local tree or a pasted brief, runs `scripts/artifact_scanner.py`, answers seven starting questions, scores fifteen principles (problem, stakeholders, value, elicitation, requirements, options, traceability, …), and writes a scorecard. `scripts/score_report.py` recomputes overall (simple average) and rank. The HTML renderer styles the markdown; it does not score.
+By default, the agent frames the real decision, separates the problem from the requested solution, examines evidence, and compares credible options. Only after the decision gate is ready does it define the minimum outcome-testing change and close the loop with a value-realization plan. It does not force a score or create report files for ordinary BA work.
+
+Ask explicitly for an audit, score, rank, maturity review, or BA audit report to run the 15-principle audit. `scripts/artifact_scanner.py` inventories evidence, `scripts/score_report.py` validates Decision Readiness and recomputes overall (simple average) and rank, and the HTML renderer styles the Markdown. The separate Decision Readiness gate prevents a good average from masking an unresolved problem, option choice, or value measure.
 
 Ranks stay English: **Excellent** · **Good** · **Fair** · **Poor**.
 
@@ -59,11 +61,13 @@ In any supported agent:
 - “is this the problem or the feature?”
 - “stakeholder and value review”
 
-Point it at a project path, a PRD, or paste the request. Deep mode is the default. Say “quick” (or an equivalent such as “rápido”) for a short pass (file count does not switch modes). If the host can spawn parallel agents, Deep fans out independent principle groups; overall and rank are computed **once** by `score_report.py`.
+Point it at a project path, a PRD, or paste the request. Decision support is the default: it answers in chat, scales depth to the decision, and does not score unless asked.
+
+For the deterministic audit, ask to “audit and score” the subject. Deep is the audit default; say “quick” (or an equivalent such as “rápido”) for a shorter audit. If the host can spawn parallel agents, Deep may fan out independent principle groups; Decision Readiness, overall, and rank are each determined **once** by the coordinator and `score_report.py` as appropriate.
 
 The skill body is English. The report **narrative** matches the user’s language; section titles, principle names, and rank tokens stay English so the scorer can parse the file.
 
-Every pass writes markdown + JSON at the subject root (HTML opens only on an interactive TTY):
+An explicit audit returns in chat by default. When report files are requested, it writes Markdown + JSON at the subject root (HTML opens only on an interactive TTY):
 
 - `ba-audit-report.md` — 📋 evidence report
 - `ba-audit-report.json` — 🧮 computed overall / rank / scores
@@ -101,7 +105,7 @@ Source of truth for this checkout is this repo — not a host `~/.grok/skills` c
 ├── action.yml                    # Composite: score_report.py
 ├── scripts/
 │   ├── artifact_scanner.py       # BA artifacts + keyword signals
-│   ├── score_report.py           # Overall + rank from 15 integers; --json
+│   ├── score_report.py           # Readiness validation + overall/rank; --json
 │   ├── compare-eval.py           # expected.json vs report JSON; --baseline
 │   ├── report_parse.py           # Shared markdown parse (not HTML)
 │   ├── report_theme.py           # HTML CSS theme
@@ -130,12 +134,13 @@ python3 -m unittest discover -s tests -v
 
 | Fact | Home |
 |------|------|
+| Outcome-first behavior and Decision Readiness | `SKILL.md` |
 | Principle definitions, indicators, anti-patterns, per-principle anchors | `references/principles.md` |
 | 0–10 scale, simple-average overall, rank bands | `references/scoring.md` |
 | Techniques catalog | `references/techniques.md` |
 | Report skeleton | `references/report_template.md` |
 | Report format | `SKILL.md` |
-| Overall / rank recompute | `scripts/score_report.py` |
+| Decision Readiness validation + overall / rank recompute | `scripts/score_report.py` |
 | HTML render | `scripts/render-report.py` |
 | HTML render does not score | `docs/adr/0001-html-render-does-not-score.md` |
 | One worked report | `references/example-report.md` (`docs/example-report.html`) |
