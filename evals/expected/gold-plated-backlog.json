@@ -1,0 +1,10 @@
+{
+  "fixture": "gold-plated-backlog",
+  "ceilings": {
+    "value & success criteria": 5,
+    "classification & prioritization": 4,
+    "scope discipline": 3,
+    "solution options evaluation": 5,
+    "solution evaluation": 5
+  }
+}

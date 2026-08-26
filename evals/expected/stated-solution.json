@@ -1,0 +1,11 @@
+{
+  "fixture": "stated-solution",
+  "ceilings": {
+    "problem definition": 4,
+    "stakeholder engagement": 4,
+    "value & success criteria": 4,
+    "elicitation completeness": 4,
+    "solution options evaluation": 3,
+    "scope discipline": 5
+  }
+}

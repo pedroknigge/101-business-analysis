@@ -1,0 +1,12 @@
+{
+  "fixture": "solid-prd",
+  "floors": {
+    "problem definition": 7,
+    "stakeholder engagement": 7,
+    "value & success criteria": 7,
+    "requirements quality": 7,
+    "classification & prioritization": 7,
+    "solution options evaluation": 7,
+    "traceability": 6
+  }
+}

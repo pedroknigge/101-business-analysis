@@ -1,0 +1,14 @@
+.DS_Store
+*.swp
+.idea/
+.vscode/
+.env
+.env.*
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+ba-audit-report.md
+ba-audit-report.html
+ba-audit-report.json

@@ -1,0 +1,23 @@
+name: ba-score
+description: Recompute business-analysis report overall and rank from the 15 principle scores
+inputs:
+  report:
+    description: Path to ba-audit-report.md
+    required: false
+    default: ba-audit-report.md
+  json:
+    description: Optional JSON output path
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Score
+      shell: bash
+      run: |
+        set -euo pipefail
+        args=("${{ inputs.report }}")
+        if [ -n "${{ inputs.json }}" ]; then
+          args+=(--json "${{ inputs.json }}")
+        fi
+        python3 "${{ github.action_path }}/scripts/score_report.py" "${args[@]}"
