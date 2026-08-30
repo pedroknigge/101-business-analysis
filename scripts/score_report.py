@@ -220,21 +220,45 @@ def scorecard_table(tables: dict[str, list[list[str]]]) -> list[list[str]] | Non
     return None
 
 
-def validate_decision_readiness(md: str, tables: dict[str, list[list[str]]]) -> list[str]:
+def readiness_payload(conclusions: dict[str, str]) -> dict[str, str]:
+    """Additive JSON keys for Decision Readiness conclusions (token export only)."""
+    mapping = (
+        ("right problem", "right_problem"),
+        ("best available option", "best_available_option"),
+        ("measurable value", "measurable_value"),
+    )
+    out: dict[str, str] = {}
+    for src, dest in mapping:
+        if src in conclusions:
+            out[dest] = conclusions[src]
+    return out
+
+
+def validate_decision_readiness(
+    md: str, tables: dict[str, list[list[str]]]
+) -> tuple[list[str], dict[str, str] | None]:
     if not DECISION_READINESS_HEADING_RE.search(md):
-        return ["Decision Readiness section missing"]
+        return ["Decision Readiness section missing"], None
 
     table = tables.get("decision readiness")
     if table is None:
-        return ["Decision Readiness table missing"]
+        return ["Decision Readiness table missing"], None
 
     header = table[0]
     i_outcome = header_index(header, "outcome")
     i_conclusion = header_index(header, "conclusion")
     if i_outcome is None or i_conclusion is None:
-        return ["Decision Readiness table needs Outcome and Conclusion columns"]
+        return ["Decision Readiness table needs Outcome and Conclusion columns"], None
+
+    i_next = header_index(
+        header,
+        "critical unknown / next evidence",
+        "critical unknown",
+        "next evidence",
+    )
 
     conclusions: dict[str, str] = {}
+    next_evidence: dict[str, str] = {}
     for row in table[1:]:
         if i_outcome >= len(row):
             continue
@@ -242,6 +266,8 @@ def validate_decision_readiness(md: str, tables: dict[str, list[list[str]]]) -> 
         if outcome not in READINESS_ROWS:
             continue
         conclusions[outcome] = row[i_conclusion].strip() if i_conclusion < len(row) else ""
+        if i_next is not None and i_next < len(row):
+            next_evidence[outcome] = row[i_next].strip()
 
     errors: list[str] = []
     for outcome, label in READINESS_ROWS.items():
@@ -279,7 +305,39 @@ def validate_decision_readiness(md: str, tables: dict[str, list[list[str]]]) -> 
             f"(got {measurable_value!r})"
         )
 
-    return errors
+    # Token↔token consistency (Cut 2): conclusion cells only — no artifact-body scrapers.
+    if (
+        right_problem in {"Provisional", "Unknown"}
+        and best_option is not None
+        and best_option.startswith("Recommended:")
+    ):
+        errors.append(
+            "Decision Readiness consistency: Right problem "
+            f"{right_problem!r} requires Best available option "
+            "'Not decision-ready' (got Recommended)"
+        )
+    if (
+        best_option is not None
+        and best_option.startswith("Recommended:")
+        and right_problem is not None
+        and right_problem != "Validated"
+    ):
+        errors.append(
+            "Decision Readiness consistency: Best available option "
+            "'Recommended: …' requires Right problem 'Validated' "
+            f"(got {right_problem!r})"
+        )
+    if best_option == "Not decision-ready" and i_next is not None:
+        cell = next_evidence.get("best available option", "")
+        if not cell:
+            errors.append(
+                "Decision Readiness consistency: Best available option "
+                "'Not decision-ready' requires a non-empty "
+                "Critical unknown / next evidence cell"
+            )
+
+    parsed = readiness_payload(conclusions) if conclusions else None
+    return errors, parsed
 
 
 def scores_from_table(table: list[list[str]] | None) -> tuple[dict[str, int], dict[str, str], list[str]]:
@@ -399,7 +457,7 @@ def validate_scores(
 def validate_markdown(md: str) -> tuple[list[str], dict]:
     meta = parse_meta(md)
     tables = parse_tables(md)
-    readiness_errors = validate_decision_readiness(md, tables)
+    readiness_errors, decision_readiness = validate_decision_readiness(md, tables)
     table = scorecard_table(tables)
     scores, evidence, parse_errors = scores_from_table(table)
     if table is None:
@@ -416,6 +474,8 @@ def validate_markdown(md: str) -> tuple[list[str], dict]:
     payload["audit_mode"] = meta.get("Audit mode", "")
     payload["subject_type"] = meta.get("Subject type", "")
     payload["cadence"] = meta.get("Cadence", "")
+    if decision_readiness is not None:
+        payload["decision_readiness"] = decision_readiness
     payload["errors"] = readiness_errors + parse_errors + errors
     return payload["errors"], payload
 

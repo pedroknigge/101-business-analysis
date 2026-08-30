@@ -3,7 +3,7 @@ name: 101-business-analysis
 description: "Use for business-analysis or decision-support work when the user needs to clarify a business problem, identify stakeholders and outcomes, compare change options, define or prioritize requirements, or plan value validation. Treat stated solutions as hypotheses. Score or rank only when the user explicitly requests an audit, score, maturity review, or BA audit report. Triggers include business analysis, analiza como BA, BABOK, and MoSCoW."
 license: MIT
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   author: pedroknigge
 ---
 
@@ -29,7 +29,7 @@ Analyze **anything** as a Business Analyst: a local repo, a PRD, a feature reque
 
 ## Skill discovery
 
-For install, update, or diagnostic requests, announce `Business Analysis 101: installed | version: <VERSION or frontmatter> | path: <skill dir>`. `<this-skill>` is the directory that contains this `SKILL.md` (`~/.agents/skills/101-business-analysis`, `~/.claude/skills/…`, `~/.grok/skills/…`, or the clone). Never assume Claude-only. If local version < published 0.2.0 on GitHub `pedroknigge/101-business-analysis`, suggest `npx skills update 101-business-analysis -g -y`. No silent auto-patch. Details: `references/skill-discovery.md`.
+For install, update, or diagnostic requests, announce `Business Analysis 101: installed | version: <VERSION or frontmatter> | path: <skill dir>`. `<this-skill>` is the directory that contains this `SKILL.md` (`~/.agents/skills/101-business-analysis`, `~/.claude/skills/…`, `~/.grok/skills/…`, or the clone). Never assume Claude-only. If local version < published 0.3.0 on GitHub `pedroknigge/101-business-analysis`, suggest `npx skills update 101-business-analysis -g -y`. No silent auto-patch. Details: `references/skill-discovery.md`.
 
 ## Modes
 
@@ -97,7 +97,7 @@ Use these non-numeric conclusions:
 2. **Scanner.** Mandatory when a filesystem subject exists. Run `python3 <this-skill>/scripts/artifact_scanner.py <path> --json` and capture real output. For a brief saved in a file, use `python3 <this-skill>/scripts/artifact_scanner.py --text <file> --json`. If `<this-skill>` is unresolved, find the directory containing this `SKILL.md`. Tool failure → note it, continue reading, and score conservatively where evidence is affected.
 3. **Core questions and readiness.** Answer the seven core questions before scoring, then state the three Decision Readiness conclusions. Missing evidence stays missing. Ask for decision-critical evidence when interaction is possible; otherwise record the smallest next evidence needed.
 4. **Score.** Load `references/principles.md` for definitions and per-principle anchors, `references/scoring.md` before any audit number, and `references/techniques.md` when applying or recommending a technique. Assign an **integer 0–10** to each of the 15 principles. Cite 1–3 real paths, quotes, or brief excerpts per principle. Empty evidence → score conservatively. **Do not reweight.** Simple average is the audit contract; it is not a decision gate.
-5. **Report.** Use the format below and `references/report_template.md`. Return the validated audit in chat by default. For chat-only output, use a temporary Markdown file outside the subject root to run `score_report.py`, then clean it up; do not persist audit artifacts in the project. Only when the user explicitly requests report files, write `<project>/ba-audit-report.md`, run `python3 <this-skill>/scripts/score_report.py <project>/ba-audit-report.md --json <project>/ba-audit-report.json`, and render `<project>/ba-audit-report.html`. Fix any reported arithmetic, readiness, or census error; never alter evidence or scores to obtain a preferred rank. Open HTML only when stdin is a TTY and `CI` is unset. No auto-commit.
+5. **Report.** Use `references/report_template.md` (see Report format). Return the validated audit in chat by default. For chat-only output, use a temporary Markdown file outside the subject root to run `score_report.py`, then clean it up; do not persist audit artifacts in the project. Only when the user explicitly requests report files, write `<project>/ba-audit-report.md`, run `python3 <this-skill>/scripts/score_report.py <project>/ba-audit-report.md --json <project>/ba-audit-report.json`, and render `<project>/ba-audit-report.html`. Fix any reported arithmetic, readiness, or census error; never alter evidence or scores to obtain a preferred rank. Open HTML only when stdin is a TTY and `CI` is unset. No auto-commit.
 6. **Next action.** Lead with the smallest action that improves the decision or closes the value loop. Offer a workshop agenda, story-slicing pass, options paper, or traceability matrix only when it is the relevant next step.
 
 ## Audit depth
@@ -133,84 +133,22 @@ Narrative (readiness, verdict, evidence notes, recommendations, strengths, weakn
 
 ## Report format
 
-```markdown
-# Business Analysis 101 Report
+Canonical skeleton: `references/report_template.md`. Do not paste it into responses or re-home it here. Audit reports must include at least:
 
-**Project:** [path or brief label]
-**Date:** [today]
-**Audit mode:** [Deep / Quick]
-**Subject type:** [repo / spec / brief / process / decision]
-**Cadence:** [Waterfall / Agile / mixed / unknown]
-**Overall Score:** X.X / 10
-**Rank:** [Excellent | Good | Fair | Poor]
-**Evidence coverage:** NN%
-
-## Executive Summary
-- 3 strengths
-- 3 critical weaknesses
-- 1–2 sentence diagnostic verdict
-
-## Decision Readiness
-| Outcome | Conclusion | Evidence | Critical unknown / next evidence |
-|---------|------------|----------|----------------------------------|
-| Right problem | Validated / Provisional / Unknown | | |
-| Best available option | Recommended: … / Not decision-ready | | |
-| Measurable value | Realized / Measurement-ready / Measurable with gaps / Not measurable / Unknown | | |
-
-## Starting Questions
-1. Real problem/opportunity:
-2. Who cares and why; decision owner:
-3. Success (measurable):
-4. Constraints:
-5. Possible ways:
-6. Best value given constraints:
-7. How we will know it worked:
-
-## Quantitative Snapshot
-(from the scanner — real output only)
-
-## Score census
-| Band | Count |
-|------|-------|
-| 9–10 | |
-| 7–8 | |
-| 5–6 | |
-| 3–4 | |
-| 0–2 | |
-
-## Scorecard
-| # | Principle | Score (0-10) | Key Evidence | Recommendation |
-|---|-----------|--------------|--------------|----------------|
-| 1 | Problem Definition | | | |
-| … (all 15; names from references/report_template.md) | | | |
-
-## BA Artifacts
-### Problem statement
-### Stakeholder map
-### Requirements inventory (gaps and outcome trace)
-(If `Not decision-ready`: inventory existing requirements and evidence gaps only; do not create implementation requirements.)
-### Options compared
-### Recommendation and rationale
-### Value realization plan
-### Assumptions & decisions
-
-## Strengths
-## Weaknesses & Risks
-## Prioritized Roadmap
-### P0 / P1 / P2
-(If `Not decision-ready`: roadmap discovery, evidence, option comparison, and measurement actions only.)
-## Cadence Notes
-## Follow-ups
-```
+- Decision Readiness table (three outcomes + conclusions)
+- Scorecard with all 15 integer scores
+- Validation via `python3 <this-skill>/scripts/score_report.py`
 
 ## Resources
 
 Runtime: filesystem, shell, and Python 3.9+.
 
-- `references/principles.md` — definitions, indicators, anti-patterns, per-principle anchors
-- `references/scoring.md` — scale, simple-average overall, rank bands
-- `references/techniques.md` — elicitation, modeling, prioritization catalog
-- `references/report_template.md` / `example-report.md` — skeleton / worked example
+Load `references/principles.md`, `references/scoring.md`, and `references/example-report.md` only in audit mode (or when explicitly scoring). Load `references/techniques.md` in audit, or in decision support only when a named technique would advance the decision. Decision support keeps the operating principles and Decision Readiness gate above; do not eager-load heavy refs for routine DS work.
+
+- `references/principles.md` — definitions, indicators, anti-patterns, per-principle anchors (audit / scoring)
+- `references/scoring.md` — scale, simple-average overall, rank bands (audit / scoring)
+- `references/techniques.md` — elicitation, modeling, prioritization catalog (audit, or when a technique advances a decision)
+- `references/report_template.md` / `example-report.md` — skeleton / worked example (audit)
 - `references/skill-discovery.md` — install path / upgrade
 - `scripts/artifact_scanner.py` — mandatory audit snapshot; optional decision-support inventory (`--json`, `--text`, `--stdin`)
 - `scripts/score_report.py` — validates Decision Readiness and computes overall + rank from the 15 integers; `--json`

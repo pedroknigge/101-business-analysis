@@ -7,5 +7,9 @@
     "elicitation completeness": 4,
     "solution options evaluation": 3,
     "scope discipline": 5
+  },
+  "decision_readiness": {
+    "right_problem": ["Unknown", "Provisional"],
+    "best_available_option": "Not decision-ready"
   }
 }

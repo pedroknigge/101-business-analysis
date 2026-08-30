@@ -12,9 +12,9 @@ ROOT = Path(__file__).resolve().parents[1]
 class PackagingTests(unittest.TestCase):
     def test_version_file(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(version, "0.2.0")
+        self.assertEqual(version, "0.3.0")
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn('version: "0.2.0"', skill)
+        self.assertIn('version: "0.3.0"', skill)
 
     def test_skill_scanner_path_is_portable(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -42,6 +42,23 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("Problem Definition", scoring)
         self.assertIn("Requirements Life Cycle", scoring)
         self.assertIn("Solution Options Evaluation", scoring)
+
+    def test_report_skeleton_lives_in_template_only(self) -> None:
+        """One home for the audit report skeleton: references/report_template.md."""
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        template = (ROOT / "references" / "report_template.md").read_text(
+            encoding="utf-8"
+        )
+        skeleton_fence = "```markdown\n# Business Analysis 101 Report"
+        self.assertNotIn(skeleton_fence, skill)
+        self.assertIn(skeleton_fence, template)
+        # Consecutive template section headers = pasted skeleton fingerprint
+        pasted_headers = (
+            "## Decision Readiness\n"
+            "| Outcome | Conclusion | Evidence | Critical unknown / next evidence |\n"
+        )
+        self.assertNotIn(pasted_headers, skill)
+        self.assertIn("references/report_template.md", skill)
 
 
 if __name__ == "__main__":

@@ -39,7 +39,11 @@ class CompareEvalTests(unittest.TestCase):
                 "elicitation completeness": 2,
                 "solution options evaluation": 1,
                 "scope discipline": 3,
-            }
+            },
+            "decision_readiness": {
+                "right_problem": "Unknown",
+                "best_available_option": "Not decision-ready",
+            },
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "report.json"
@@ -56,7 +60,11 @@ class CompareEvalTests(unittest.TestCase):
                 "elicitation completeness": 2,
                 "solution options evaluation": 1,
                 "scope discipline": 3,
-            }
+            },
+            "decision_readiness": {
+                "right_problem": "Provisional",
+                "best_available_option": "Not decision-ready",
+            },
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "report.json"
@@ -64,6 +72,49 @@ class CompareEvalTests(unittest.TestCase):
             proc = run([str(STATED), str(path)])
         self.assertEqual(proc.returncode, 1)
         self.assertIn("above ceiling", proc.stderr)
+
+    def test_stated_solution_readiness_mismatch_fails(self) -> None:
+        report = {
+            "scores": {
+                "problem definition": 2,
+                "stakeholder engagement": 2,
+                "value & success criteria": 1,
+                "elicitation completeness": 2,
+                "solution options evaluation": 1,
+                "scope discipline": 3,
+            },
+            "decision_readiness": {
+                "right_problem": "Validated",
+                "best_available_option": "Recommended: Ship the app",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "report.json"
+            path.write_text(json.dumps(report), encoding="utf-8")
+            proc = run([str(STATED), str(path)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("decision_readiness", proc.stderr)
+
+    def test_stated_solution_readiness_match_passes(self) -> None:
+        report = {
+            "scores": {
+                "problem definition": 2,
+                "stakeholder engagement": 2,
+                "value & success criteria": 1,
+                "elicitation completeness": 2,
+                "solution options evaluation": 1,
+                "scope discipline": 3,
+            },
+            "decision_readiness": {
+                "right_problem": "Provisional",
+                "best_available_option": "Not decision-ready",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "report.json"
+            path.write_text(json.dumps(report), encoding="utf-8")
+            proc = run([str(STATED), str(path)])
+        self.assertEqual(proc.returncode, 0, proc.stderr)
 
     def test_solid_prd_floor_hit(self) -> None:
         report = {
@@ -75,7 +126,12 @@ class CompareEvalTests(unittest.TestCase):
                 "classification & prioritization": 8,
                 "solution options evaluation": 8,
                 "traceability": 7,
-            }
+            },
+            "decision_readiness": {
+                "right_problem": "Validated",
+                "best_available_option": "Recommended: Configure the platform",
+                "measurable_value": "Measurement-ready",
+            },
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "report.json"
@@ -93,7 +149,12 @@ class CompareEvalTests(unittest.TestCase):
                 "classification & prioritization": 8,
                 "solution options evaluation": 8,
                 "traceability": 7,
-            }
+            },
+            "decision_readiness": {
+                "right_problem": "Validated",
+                "best_available_option": "Recommended: Configure the platform",
+                "measurable_value": "Measurable with gaps",
+            },
         }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "report.json"
@@ -101,6 +162,30 @@ class CompareEvalTests(unittest.TestCase):
             proc = run([str(SOLID), str(path)])
         self.assertEqual(proc.returncode, 1)
         self.assertIn("below floor", proc.stderr)
+
+    def test_solid_prd_readiness_prefix_fail(self) -> None:
+        report = {
+            "scores": {
+                "problem definition": 8,
+                "stakeholder engagement": 8,
+                "value & success criteria": 8,
+                "requirements quality": 8,
+                "classification & prioritization": 8,
+                "solution options evaluation": 8,
+                "traceability": 7,
+            },
+            "decision_readiness": {
+                "right_problem": "Validated",
+                "best_available_option": "Not decision-ready",
+                "measurable_value": "Measurement-ready",
+            },
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "report.json"
+            path.write_text(json.dumps(report), encoding="utf-8")
+            proc = run([str(SOLID), str(path)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("does not start with", proc.stderr)
 
     def test_baseline_regression(self) -> None:
         old = {"scores": {"problem definition": 7, "scope discipline": 6}}

@@ -1,6 +1,17 @@
 # Changelog
 
-Public numbering is **0.2.0**.
+Public numbering is **0.3.0**.
+
+## 0.3.0 - 2026-08-29
+
+### Changed
+
+- Scorer `--json` now exports additive `decision_readiness` (`right_problem`, `best_available_option`, `measurable_value`) from validated conclusion cells. Schema remains `ba-report/0.1`.
+- `compare-eval.py` accepts optional `decision_readiness` expects (exact string, allowed list, or `{startswith|in|eq}`). Fixture expects updated for stated-solution, solid-prd, and gold-plated-backlog.
+- Token↔token consistency on Decision Readiness conclusion cells: Provisional/Unknown cannot pair with `Recommended:`; `Recommended:` requires Right problem `Validated`; Not decision-ready requires a non-empty Critical unknown / next evidence cell. No BA Artifacts / Must / build scrapers.
+- Packaging forbids pasting the report skeleton into `SKILL.md`; one home remains `references/report_template.md`.
+- Audit Report format defers to the template pointer plus a short must-include checklist (Decision Readiness, Scorecard, `score_report.py`).
+- Eager ref loads are audit-only (or explicit scoring / named technique); decision support keeps operating principles and the NDR gate without heavy refs.
 
 ## 0.2.0 - 2026-08-25
 

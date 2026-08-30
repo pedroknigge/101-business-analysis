@@ -46,6 +46,50 @@ def score_map(payload: dict) -> dict[str, int]:
     return out
 
 
+def match_readiness_expect(field: str, expected, got) -> list[str]:
+    """Assert one readiness field. str=exact; list=allowed set; dict may use startswith."""
+    errors: list[str] = []
+    if got is None or got == "":
+        errors.append(f"decision_readiness.{field}: missing")
+        return errors
+    got_s = str(got)
+    if isinstance(expected, list):
+        allowed = [str(x) for x in expected]
+        if got_s not in allowed:
+            errors.append(
+                f"decision_readiness.{field}: {got_s!r} not in {allowed}"
+            )
+        return errors
+    if isinstance(expected, dict):
+        if "startswith" in expected:
+            prefix = str(expected["startswith"])
+            if not got_s.startswith(prefix):
+                errors.append(
+                    f"decision_readiness.{field}: {got_s!r} does not start with {prefix!r}"
+                )
+            return errors
+        if "in" in expected:
+            allowed = [str(x) for x in expected["in"]]
+            if got_s not in allowed:
+                errors.append(
+                    f"decision_readiness.{field}: {got_s!r} not in {allowed}"
+                )
+            return errors
+        if "eq" in expected:
+            want = str(expected["eq"])
+            if got_s != want:
+                errors.append(
+                    f"decision_readiness.{field}: {got_s!r} != {want!r}"
+                )
+            return errors
+        errors.append(f"decision_readiness.{field}: unsupported expect object")
+        return errors
+    want = str(expected)
+    if got_s != want:
+        errors.append(f"decision_readiness.{field}: {got_s!r} != {want!r}")
+    return errors
+
+
 def eval_against_expected(expected: dict, report: dict) -> list[str]:
     errors: list[str] = []
     scores = score_map(report)
@@ -95,6 +139,19 @@ def eval_against_expected(expected: dict, report: dict) -> list[str]:
                 )
         except (TypeError, ValueError):
             errors.append("overall missing for overall_ceiling")
+    readiness_expect = expected.get("decision_readiness")
+    if readiness_expect is not None:
+        if not isinstance(readiness_expect, dict):
+            errors.append("decision_readiness expect must be an object")
+        else:
+            got_ready = report.get("decision_readiness")
+            if not isinstance(got_ready, dict):
+                errors.append("decision_readiness missing from report")
+            else:
+                for field, want in readiness_expect.items():
+                    errors.extend(
+                        match_readiness_expect(str(field), want, got_ready.get(field))
+                    )
     return errors
 
 

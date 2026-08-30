@@ -12,3 +12,6 @@ __pycache__/
 ba-audit-report.md
 ba-audit-report.html
 ba-audit-report.json
+
+# Orderfield orchestration state
+.orderfield/

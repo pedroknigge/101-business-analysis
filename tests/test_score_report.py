@@ -108,6 +108,26 @@ class ScoreReportTests(unittest.TestCase):
             self.assertEqual(len(payload["scores"]), 15)
             self.assertEqual(payload["missing"], [])
             self.assertEqual(payload["subject_type"], "repo")
+            self.assertEqual(
+                payload["decision_readiness"],
+                {
+                    "right_problem": "Provisional",
+                    "best_available_option": "Not decision-ready",
+                    "measurable_value": "Measurable with gaps",
+                },
+            )
+
+    def test_example_json_decision_readiness_export(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "report.json"
+            proc = run([str(EXAMPLE), "--json", str(out)])
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            payload = json.loads(out.read_text(encoding="utf-8"))
+        self.assertIn("decision_readiness", payload)
+        ready = payload["decision_readiness"]
+        self.assertEqual(ready["right_problem"], "Provisional")
+        self.assertEqual(ready["best_available_option"], "Not decision-ready")
+        self.assertEqual(ready["measurable_value"], "Measurable with gaps")
 
     def test_known_fifteen_scores(self) -> None:
         scores = [8, 7, 5, 6, 6, 8, 7, 4, 5, 8, 6, 5, 8, 5, 8]
@@ -183,6 +203,78 @@ class ScoreReportTests(unittest.TestCase):
             src.write_text(md, encoding="utf-8")
             proc = run([str(src)])
         self.assertEqual(proc.returncode, 0, proc.stderr)
+
+    def test_provisional_with_recommended_fails_consistency(self) -> None:
+        readiness = make_readiness(
+            right_problem="Provisional",
+            best_option="Recommended: Ship anyway",
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("consistency", proc.stderr)
+        self.assertIn("Not decision-ready", proc.stderr)
+
+    def test_unknown_with_recommended_fails_consistency(self) -> None:
+        readiness = make_readiness(
+            right_problem="Unknown",
+            best_option="Recommended: Build the app",
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("consistency", proc.stderr)
+
+    def test_validated_with_recommended_still_allowed(self) -> None:
+        readiness = make_readiness(
+            right_problem="Validated",
+            best_option="Recommended: Configure the existing platform",
+            measurable_value="Measurement-ready",
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+
+    def test_ndr_empty_next_evidence_fails_consistency(self) -> None:
+        readiness = (
+            "## Decision Readiness\n\n"
+            "| Outcome | Conclusion | Evidence | Critical unknown / next evidence |\n"
+            "|---------|------------|----------|----------------------------------|\n"
+            "| Right problem | Provisional | evidence | next evidence |\n"
+            "| Best available option | Not decision-ready | evidence | |\n"
+            "| Measurable value | Measurable with gaps | evidence | next evidence |\n"
+        )
+        md = make_report([7] * 15, "7.0", "Good", readiness=readiness)
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.md"
+            src.write_text(md, encoding="utf-8")
+            proc = run([str(src)])
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("Critical unknown", proc.stderr)
+
+    def test_no_must_build_artifact_scrapers(self) -> None:
+        src = Path(score_report.__file__).read_text(encoding="utf-8")
+        marker = "Token↔token consistency"
+        self.assertIn(marker, src)
+        consistency = src[src.find(marker) :]
+        for banned in (
+            "BA Artifacts",
+            "implementation",
+            "backlog",
+            "Must",
+            "build plan",
+            "MoSCoW",
+        ):
+            self.assertNotIn(banned, consistency)
 
     def test_missing_principle_nonzero(self) -> None:
         scores = [7] * 15

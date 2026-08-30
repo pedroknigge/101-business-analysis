@@ -6,5 +6,9 @@
     "scope discipline": 3,
     "solution options evaluation": 5,
     "solution evaluation": 5
+  },
+  "decision_readiness": {
+    "best_available_option": "Not decision-ready",
+    "measurable_value": ["Not measurable", "Measurable with gaps", "Unknown"]
   }
 }

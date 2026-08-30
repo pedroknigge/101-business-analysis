@@ -8,5 +8,10 @@
     "classification & prioritization": 7,
     "solution options evaluation": 7,
     "traceability": 6
+  },
+  "decision_readiness": {
+    "right_problem": "Validated",
+    "best_available_option": {"startswith": "Recommended:"},
+    "measurable_value": ["Measurement-ready", "Measurable with gaps", "Realized"]
   }
 }
